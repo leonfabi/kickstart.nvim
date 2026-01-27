@@ -198,13 +198,40 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+-- Function to enter a temporary "Resize Mode"
+local function enter_resize_mode()
+  print '-- RESIZE MODE (h,j,k,l to resize, Esc/Enter to exit) --'
+  -- Helper to set temporary mappings
+  local function map(key, cmd)
+    vim.keymap.set('n', key, cmd, { buffer = true })
+  end
 
+  -- Apply temporary resize keys
+  map('h', ':vertical resize -2<CR>')
+  map('l', ':vertical resize +2<CR>')
+  map('k', ':resize +2<CR>')
+  map('j', ':resize -2<CR>')
+
+  -- Define how to exit the mode
+  local function exit_resize_mode()
+    for _, key in ipairs { 'h', 'j', 'k', 'l', '<Esc>', '<CR>' } do
+      vim.keymap.del('n', key, { buffer = true })
+    end
+    print '-- RESIZE MODE EXIT --'
+  end
+
+  -- Map exit keys
+  vim.keymap.set('n', '<Esc>', exit_resize_mode, { buffer = true })
+  vim.keymap.set('n', '<CR>', exit_resize_mode, { buffer = true })
+end
+
+-- Trigger the mode with <leader>r
+vim.keymap.set('n', '<leader>r', enter_resize_mode, { desc = 'Enter Window Resize Mode' })
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
 -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
 -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
-
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -1027,6 +1054,16 @@ require('lazy').setup({
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
+  -- Add this to your dependencies or plugin list
+  {
+    'mfussenegger/nvim-dap-python',
+    dependencies = 'mfussenegger/nvim-dap',
+    config = function()
+      -- This path is where Mason usually installs debugpy
+      local debugpy_path = vim.fn.stdpath 'data' .. '/mason/packages/debugpy/venv/bin/python'
+      require('dap-python').setup(debugpy_path)
+    end,
+  },
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
