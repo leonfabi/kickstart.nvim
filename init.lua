@@ -235,6 +235,14 @@ vim.keymap.set('n', '<leader>r', enter_resize_mode, { desc = 'Enter Window Resiz
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
+-- Open terminal in horizontal split below with custom size
+vim.keymap.set('n', '<leader>tt', function()
+  vim.cmd 'split'
+  vim.cmd 'wincmd J' -- Move split to bottom
+  vim.cmd 'resize 15' -- Set height to 15 lines (adjust as needed)
+  vim.cmd 'terminal'
+  vim.cmd 'startinsert' -- Auto-enter insert mode
+end, { desc = '[T]erminal [T]oggle' })
 -- Highlight when yanking (copying) text
 --  Try it with `yap` in normal mode
 --  See `:help vim.hl.on_yank()`
@@ -245,7 +253,16 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.hl.on_yank()
   end,
 })
-
+-- Language-specific indentation for Lua
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'lua',
+  callback = function()
+    vim.bo.expandtab = true -- Use spaces for Lua
+    vim.bo.shiftwidth = 2
+    vim.bo.tabstop = 2
+    vim.bo.softtabstop = 2
+  end,
+})
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -700,7 +717,7 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        -- pyright = {},
+        pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -973,7 +990,24 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'python', 'query', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'python',
+        'query',
+        'vim',
+        'vimdoc',
+        'go',
+        'gomod',
+        'gosum',
+        'gowork',
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
