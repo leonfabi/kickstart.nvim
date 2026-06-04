@@ -109,7 +109,8 @@ vim.o.mouse = 'a'
 
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
-
+-- Set Python env for neovim
+vim.g.python3_host_prog = vim.fn.expand '~/.venv/neovim/bin/python'
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -156,7 +157,7 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 vim.o.inccommand = 'split'
 
 -- Show which line your cursor is on
-vim.o.cursorline = true
+vim.o.cursorline = false
 
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.o.scrolloff = 10
@@ -388,9 +389,53 @@ require('lazy').setup({
 
       -- Document existing key chains
       spec = {
+        -- Groups
         { '<leader>s', group = '[S]earch' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { 'gr',        group = 'LSP' },
+        { 'g',         group = '[G]oto' },
+
+        -- Top-level leader
+        { '<leader><leader>', desc = 'Find existing buffers' },
+        { '<leader>/',        desc = 'Fuzzy search current buffer' },
+        { '<leader>f',        desc = '[F]ormat buffer',                  mode = { 'n', 'v' } },
+        { '<leader>q',        desc = 'Open diagnostic [Q]uickfix list' },
+        { '<leader>r',        desc = 'Enter Window [R]esize Mode' },
+
+        -- [S]earch
+        { '<leader>s.',  desc = 'Search Recent Files' },
+        { '<leader>s/',  desc = 'Search in Open Files' },
+        { '<leader>sd',  desc = 'Search [D]iagnostics' },
+        { '<leader>sf',  desc = 'Search [F]iles' },
+        { '<leader>sg',  desc = 'Search by [G]rep' },
+        { '<leader>sh',  desc = 'Search [H]elp' },
+        { '<leader>sk',  desc = 'Search [K]eymaps' },
+        { '<leader>sn',  desc = 'Search [N]eovim config files' },
+        { '<leader>sr',  desc = 'Search [R]esume last picker' },
+        { '<leader>ss',  desc = 'Search [S]elect Telescope picker' },
+        { '<leader>sw',  desc = 'Search current [W]ord' },
+
+        -- [T]oggle
+        { '<leader>th', desc = 'Toggle Inlay [H]ints' },
+        { '<leader>tt', desc = 'Open [T]erminal split' },
+
+        -- LSP (gr*)
+        { 'grn', desc = '[R]e[n]ame symbol' },
+        { 'gra', desc = 'Code [A]ction',          mode = { 'n', 'x' } },
+        { 'grr', desc = 'Goto [R]eferences' },
+        { 'gri', desc = 'Goto [I]mplementation' },
+        { 'grd', desc = 'Goto [D]efinition' },
+        { 'grD', desc = 'Goto [D]eclaration' },
+        { 'grt', desc = 'Goto [T]ype Definition' },
+        { 'gO',  desc = 'Document Symbols' },
+        { 'gW',  desc = 'Workspace Symbols' },
+
+        -- Window navigation (shown in which-key popup)
+        { '<C-h>', desc = 'Focus left window' },
+        { '<C-j>', desc = 'Focus lower window' },
+        { '<C-k>', desc = 'Focus upper window' },
+        { '<C-l>', desc = 'Focus right window' },
       },
     },
   },
@@ -812,6 +857,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        markdown = { 'prettier' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -919,28 +965,49 @@ require('lazy').setup({
       signature = { enabled = true },
     },
   },
-
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+  {
+    'talha-akram/noctis.nvim',
+    priority = 1000,
     config = function()
-      ---@diagnostic disable-next-line: missing-fields
-      require('tokyonight').setup {
-        styles = {
-          comments = { italic = false }, -- Disable italics in comments
-        },
-      }
-
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'noctis'
     end,
   },
+
+  {
+    'f-person/auto-dark-mode.nvim',
+    opts = {
+      update_interval = 3000,
+      set_dark_mode = function()
+        vim.o.background = 'dark'
+        vim.cmd.colorscheme 'noctis_obscuro'
+      end,
+      set_light_mode = function()
+        vim.o.background = 'light'
+        vim.cmd.colorscheme 'noctis_lux'
+      end,
+    },
+  },
+  -- { -- You can easily change to a different colorscheme.
+  --   -- Change the name of the colorscheme plugin below, and then
+  --   -- change the command in the config to whatever the name of that colorscheme is.
+  --   --
+  --   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+  --   'folke/tokyonight.nvim',
+  --   priority = 1000, -- Make sure to load this before all the other start plugins.
+  --   config = function()
+  --     ---@diagnostic disable-next-line: missing-fields
+  --     require('tokyonight').setup {
+  --       styles = {
+  --         comments = { italic = false }, -- Disable italics in comments
+  --       },
+  --     }
+  --
+  --     -- Load the colorscheme here.
+  --     -- Like many other themes, this one has different styles, and you could load
+  --     -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+  --     vim.cmd.colorscheme 'tokyonight-night'
+  --   end,
+  -- },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
